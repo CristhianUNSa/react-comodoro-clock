@@ -1,4 +1,29 @@
-.blueBg {
-	background-color: red;
-	color: white;
+body{
+  background-color: #16a085;
+  color: #fff;  
+}
+h1{
+  text-align: center;
+}
+.row > div{
+  text-align: center;
+}
+h2{
+  margin-top: 6px;
+}
+.round{
+  position: absolute;
+  display: table;
+  border : 2px solid #fff;
+  border-radius: 50%;
+  height: 300px;
+  width: 300px;
+  left:50%;
+  margin-left: -150px;
+}
+.round > span{
+  font-size: 2em;
+  display: table-cell;
+  text-align: center; 
+  vertical-align: middle;
 }

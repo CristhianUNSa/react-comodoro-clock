@@ -1,15 +1,50 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import styles from './index.scss';
 import React from 'react';
 
 export default class App extends React.Component {
   render() {
     return (
-      <div>
-        <h1>It Works!</h1>
-        <p>This React project just works including <span className={styles.blueBg}>module</span> local styles.</p>
-        <p>Global bootstrap css import works too as you can see on the following button.</p>
-        <p><a className="btn btn-primary btn-lg">Enjoy!</a></p>
+      <div className="container-fluid">
+        <div className="row">
+          <h1>Pomodoro Clock</h1>
+        </div>
+        <div className="row">
+          <div className="col-xs-3 offset-xs-3">
+            <h5>
+              BREAK LENGTH
+            </h5>
+          </div>
+          <div className="col-xs-3">
+            <h5>
+              SESSION LENGTH
+            </h5>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-xs-3 offset-xs-3">
+            <h2>
+              - 5 +
+            </h2>
+          </div>
+          <div className="col-xs-3">
+            <h2>
+              - 25 +
+            </h2>
+          </div>
+        </div>
+        <div className="row">
+          <div className="offset-xs-4 col-xs-4">
+            <div className="round">
+              <span>
+                SESSION
+                <br />
+                <br />
+                <br />
+                22:53
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
