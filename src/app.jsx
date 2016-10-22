@@ -2,16 +2,16 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import Picker from './components/PickerComponent';
 import Counter from './components/CounterComponent';
-let SESSION = "SESSION";
-let BREAK = "BREAK";
+const SESSION = "SESSION";
+const BREAK = "BREAK";
 
 export default class App extends React.Component {
   
   constructor(props){
     super(props);
-    this.ChangePickerValue = this.ChangePickerValue.bind(this);
+    this.changePickerValue = this.changePickerValue.bind(this);
     this.decreaseCounter = this.decreaseCounter.bind(this);
-    this.HandleState = this.HandleState.bind(this);
+    this.handleState = this.handleState.bind(this);
     this.state = {
       paused: true,
       intervalId: 0,
@@ -26,13 +26,13 @@ export default class App extends React.Component {
         value: 25
       },
       counter: {
-        label: 'SESSION',
-        value: '1:00'
+        label: SESSION,
+        value: '25:00'
       }
     }
   }
   hmsToSecondsOnly(str) {
-    var p = str.split(':'),
+    let p = str.split(':'),
         s = 0, m = 1;
 
     while (p.length > 0) {
@@ -57,7 +57,6 @@ export default class App extends React.Component {
     let activePicker = this.state.session.active ? "session" : "break";
     let minsec = this.state.counter.value;
     let seconds = this.hmsToSecondsOnly(minsec);
-    console.log("In decreaseCounter: ", activePicker, minsec, seconds);
     seconds-= 1;
     if(seconds < 0){
       let notActivePicker = activePicker === "session" ? "break" : "session";
@@ -69,11 +68,13 @@ export default class App extends React.Component {
           ...this.state,
             session:{
               ...this.state.session,
-              active: false
+              active: false,
+              blocked: true
             },
             break:{
               ...this.state.break,
-              active:true
+              active:true,
+              blocked: false
             },
             counter: {
               ...this.state.counter,
@@ -83,16 +84,18 @@ export default class App extends React.Component {
         }
         this.setState(newState);
       }
-      else{
+      else{ //activePicker === 'break', now 'session' will be active
         newState = 
         {...this.state, 
           session:{
             ...this.state.session,
-            active: true
+            active: true,
+            blocked: false
           },
           break:{
             ...this.state.break,
-            active:false
+            active:false,
+            blocked: true
           },
           counter: {
             ...this.state.counter,
@@ -102,7 +105,6 @@ export default class App extends React.Component {
         };
         this.setState(newState);
       }
-      
     }
     else{
       let newMinutes = this.secondsToMS(seconds);
@@ -116,22 +118,13 @@ export default class App extends React.Component {
       this.setState(newCounter);
     }
   }
-  HandleState(){
-    console.log("HandleState");
+  handleState(){
     let activePicker = this.state.session.active ? "session" : "break";
       if(this.state.paused){
         let intervalId = setInterval(this.decreaseCounter, 1000);
         let newState = {
           ...this.state,
           intervalId: intervalId,
-          break: {
-            ...this.state.break,
-            blocked: true
-          },
-          session: {
-            ...this.state.session,
-            blocked: true
-          },
           paused: false
         };
         this.setState(newState);
@@ -139,67 +132,66 @@ export default class App extends React.Component {
       else{
         let intervalId = this.state.intervalId;
         clearInterval(intervalId);
-        let newState;
-        if(activePicker === "session"){
-          newState = {
-            ...this.state,
-            break:{
-              ...this.state.break,
-              blocked: true
-            },
-            session:{
-              ...this.state.session,
-              blocked: false
-            },
-            paused: true
-          }
-        }
-        else{
-          newState = {
-            ...this.state,
-            break:{
-              ...this.state.break,
-              blocked: true
-            },
-            session:{
-              ...this.state.session,
-              blocked: false
-            },
-            paused: true
-          }
+        let newState = {
+          ...this.state,
+          intervalId: 0,
+          paused: true
         }
         this.setState(newState);
       }
   }
-  ChangePickerValue(componentId, parValue){
-    console.log("click!");
+  changePickerValue(componentId, parValue){
     let newState;
-    if(componentId === "break"){
-      if (this.state.break.active || !this.state.break.blocked){
-          var newValue = this.state.break.value + parseInt(parValue);
+    if(this.state.paused){
+      if(componentId === "break"){
+        if (this.state.break.active || !this.state.break.blocked){
+            let newValue = this.state.break.value + parseInt(parValue);
+            if (newValue <= 0) newValue = 1;
+            let counterValue = newValue;
+            if(this.state.break.active){
+              counterValue = (counterValue.length === 1 ? '0' + counterValue : counterValue) + ':00';
+            }
+            else{
+              counterValue = this.state.counter.value;
+            }
+            newState = {
+              ...this.state, 
+              break:{
+                ...this.state.break,
+                value: newValue
+              },
+              counter:{
+                ...this.state.counter,
+                value: counterValue
+              }
+            };
+            this.setState(newState);
+          }
+      }
+      else{ // session
+        if (this.state.session.active || !this.state.session.blocked) {
+          let newValue = this.state.session.value + parseInt(parValue);
           if (newValue <= 0) newValue = 1;
+          let counterValue = newValue;
+          if(this.state.session.active){
+            counterValue = (counterValue.length === 1 ? '0' + counterValue : counterValue) + ':00';
+          }
+          else{
+            counterValue = this.state.counter.value;
+          }
           newState = {
-            ...this.state, 
-            break:{
-              ...this.state.break,
+            ...this.state,
+            session:{
+              ...this.state.session,
               value: newValue
+            },
+            counter:{
+              ...this.state.counter,
+              value: counterValue
             }
           };
           this.setState(newState);
         }
-    }
-    else{
-      if (this.state.session.active || !this.state.session.blocked){
-        var newValue = this.state.session.value + parseInt(parValue);
-        if (newValue <= 0) newValue = 1;
-        newState = {
-          ...this.state,
-          session:{
-            ...this.state.session,
-            value: newValue
-          }
-        };
-        this.setState(newState);
       }
     }
   }
@@ -211,15 +203,15 @@ export default class App extends React.Component {
         </div>
         <div className="row">
           <div className="col-xs-3 offset-xs-3">
-            <Picker label="BREAK LENGTH" ChangeValue={this.ChangePickerValue} value={this.state.break.value} componentId="break" />
+            <Picker label="BREAK LENGTH" ChangeValue={this.changePickerValue} value={this.state.break.value} componentId="break" />
           </div>
           <div className="col-xs-3">
-            <Picker label="SESSION LENGTH" ChangeValue={this.ChangePickerValue} value={this.state.session.value} componentId="session" />
+            <Picker label="SESSION LENGTH" ChangeValue={this.changePickerValue} value={this.state.session.value} componentId="session" />
           </div>
         </div>
         <div className="row">
           <div className="offset-xs-4 col-xs-4">
-            <Counter label={this.state.counter.label} value={this.state.counter.value} OnCounterClick={this.HandleState}/>
+            <Counter label={this.state.counter.label} value={this.state.counter.value} OnCounterClick={this.handleState}/>
           </div>
         </div>
       </div>
